@@ -1,0 +1,9 @@
+lp/data/
+lp/preprocessed/Amazon/unconnected_pairs_offset.npy
+lp/preprocessed/Amazon/neg_ratings_offset.npy
+lp/preprocessed/Douban_Movie/neg_ratings_offset.npy
+lp/preprocessed/Douban_Movie/unconnected_pairs_offset.npy
+lp/preprocessed/Yelp/neg_ratings_offset.npy
+lp/preprocessed/Yelp/unconnected_pairs_offset.npy
+
+nc/data/
