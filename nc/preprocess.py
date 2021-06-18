@@ -3,12 +3,38 @@ import sys
 import numpy as np
 import torch
 import pickle as pkl
+import scipy.sparse as sp
 
 cstr_nc = {
     "DBLP" : [1, 4],
     "ACM" : [0, 2, 4],
     "IMDB" : [0, 2, 4]
 }
+
+def normalize_sym(adj):
+    """Symmetrically normalize adjacency matrix."""
+    rowsum = np.array(adj.sum(1))
+    d_inv_sqrt = np.power(rowsum, -0.5).flatten()
+    d_inv_sqrt[np.isinf(d_inv_sqrt)] = 0.
+    d_mat_inv_sqrt = sp.diags(d_inv_sqrt)
+    return adj.dot(d_mat_inv_sqrt).transpose().dot(d_mat_inv_sqrt).tocoo()
+
+def normalize_row(mx):
+    """Row-normalize sparse matrix"""
+    rowsum = np.array(mx.sum(1))
+    r_inv = np.power(rowsum, -1).flatten()
+    r_inv[np.isinf(r_inv)] = 0.
+    r_mat_inv = sp.diags(r_inv)
+    mx = r_mat_inv.dot(mx)
+    return mx.tocoo()
+
+def sparse_mx_to_torch_sparse_tensor(sparse_mx):
+    """Convert a scipy sparse matrix to a torch sparse tensor."""
+    indices = torch.from_numpy(
+        np.vstack((sparse_mx.row, sparse_mx.col)).astype(np.int64))
+    values = torch.from_numpy(sparse_mx.data)
+    shape = torch.Size(sparse_mx.shape)
+    return torch.sparse.FloatTensor(indices, values, shape)
 
 def main(dataset):
     prefix = os.path.join("./data/", dataset)
