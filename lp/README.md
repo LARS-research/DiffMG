@@ -1,6 +1,6 @@
 ## Prepare data
 
-**We already provide the necessary preprocessed data under the `preprocessed ` folder.** 
+**We already provide the necessary preprocessed data under the `preprocessed` folder, so you can search and evaluate directly.** 
 
 The following steps show how we generate them from raw data.
 
