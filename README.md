@@ -7,6 +7,7 @@ https://arxiv.org/abs/2010.03250
 ## Environment
 
 ```
+python=3.8
 pytorch==1.6.0 with CUDA support (by default our model is trained on GPU)
 numpy==1.19.1
 scipy==1.5.2
