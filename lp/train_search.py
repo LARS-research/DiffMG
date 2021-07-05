@@ -23,7 +23,7 @@ parser.add_argument('--steps_s', type=int, nargs='+', help='number of intermedia
 parser.add_argument('--steps_t', type=int, nargs='+', help='number of intermediate states in the meta graph for target node type')
 parser.add_argument('--dataset', type=str, default='Yelp')
 parser.add_argument('--gpu', type=int, default=0)
-parser.add_argument('--epochs', type=int, default=100)
+parser.add_argument('--epochs', type=int, default=100, help='number of epochs for supernet training')
 parser.add_argument('--eps', type=float, default=0., help='probability of random sampling')
 parser.add_argument('--decay', type=float, default=0.9, help='decay factor for eps')
 parser.add_argument('--seed', type=int, default=0)
@@ -81,7 +81,7 @@ def main():
     neg_val = neg['val']
     neg_test = neg['test']
 
-    #* inputs
+    #* one-hot IDs as input features
     in_dims = []
     node_feats = []
     for k in range(num_node_types):

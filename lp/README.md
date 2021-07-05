@@ -67,6 +67,10 @@ epoch number; training error; validation error; architecture for source node typ
 
 To obtain a good architecture, we usually need to run the search algorithm several times with different random seeds.
 
+## Architecture Interpretation
+
+Similar to the node classification task. Please refer to README therein.
+
 ## Evaluation
 
 Run the following commands to train the derived architectures from scratch:

@@ -21,7 +21,7 @@ parser.add_argument('--alr', type=float, default=3e-4, help='learning rate for a
 parser.add_argument('--steps', type=int, nargs='+', help='number of intermediate states in the meta graph')
 parser.add_argument('--dataset', type=str, default='DBLP')
 parser.add_argument('--gpu', type=int, default=0)
-parser.add_argument('--epochs', type=int, default=50)
+parser.add_argument('--epochs', type=int, default=50, help='number of epochs for supernet training')
 parser.add_argument('--eps', type=float, default=0.3, help='probability of random sampling')
 parser.add_argument('--decay', type=float, default=0.9, help='decay factor for eps')
 parser.add_argument('--seed', type=int, default=0)

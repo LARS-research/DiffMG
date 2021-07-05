@@ -4,7 +4,9 @@ import torch.nn.functional as F
 import numpy as np
 
 class Op(nn.Module):
-
+    '''
+    operation for one link in the DAG search space  
+    '''
     def __init__(self):
         super(Op, self).__init__()
     
@@ -13,27 +15,29 @@ class Op(nn.Module):
         return ws[idx] * torch.spmm(adjs[idx], x)
 
 class Cell(nn.Module):
-
+    '''
+    the DAG search space
+    '''
     def __init__(self, n_step, n_hid_prev, n_hid, cstr, use_norm = True, use_nl = True):
         super(Cell, self).__init__()
         
         self.affine = nn.Linear(n_hid_prev, n_hid)
-        self.n_step = n_step
+        self.n_step = n_step               #* number of intermediate states (i.e., K)
         self.norm = nn.LayerNorm(n_hid, elementwise_affine = False) if use_norm is True else lambda x : x
         self.use_nl = use_nl
         assert(isinstance(cstr, list))
-        self.cstr = cstr
+        self.cstr = cstr                   #* type constraint
 
-        self.ops_seq = nn.ModuleList()     ##! exclude last step
-        for i in range(self.n_step - 1):
+        self.ops_seq = nn.ModuleList()     #* state (i - 1) -> state i, 1 <= i < K
+        for i in range(1, self.n_step):
             self.ops_seq.append(Op())
-        self.ops_res = nn.ModuleList()     ##! exclude last step
-        for i in range(1, self.n_step - 1):
-            for j in range(i):
+        self.ops_res = nn.ModuleList()     #* state j -> state i, 0 <= j < i - 1, 2 <= i < K
+        for i in range(2, self.n_step):
+            for j in range(i - 1):
                 self.ops_res.append(Op())
 
-        self.last_seq = Op()
-        self.last_res = nn.ModuleList()
+        self.last_seq = Op()               #* state (K - 1) -> state K
+        self.last_res = nn.ModuleList()    #* state i -> state K, 0 <= i < K - 1
         for i in range(self.n_step - 1):
             self.last_res.append(Op())
     
@@ -68,17 +72,17 @@ class Model(nn.Module):
         self.cstr = cstr
         self.n_adjs = n_adjs
         self.n_hid = n_hid
-        self.ws = nn.ModuleList()
+        self.ws = nn.ModuleList()          #* node type-specific transformation
         assert(isinstance(in_dims, list))
         for i in range(len(in_dims)):
             self.ws.append(nn.Linear(in_dims[i], n_hid))
-        assert(isinstance(n_steps, list))
+        assert(isinstance(n_steps, list))  #* [optional] combine more than one meta graph?
         self.metas = nn.ModuleList()
         for i in range(len(n_steps)):
             self.metas.append(Cell(n_steps[i], n_hid, n_hid, cstr, use_norm = use_norm, use_nl = out_nl))
 
-        self.as_seq = []
-        self.as_last_seq = []
+        self.as_seq = []                   #* arch parameters for ops_seq
+        self.as_last_seq = []              #* arch parameters for last_seq
         for i in range(len(n_steps)):
             if n_steps[i] > 1:
                 ai = 1e-3 * torch.randn(n_steps[i] - 1, n_adjs - 1)   #! exclude zero Op
@@ -92,9 +96,9 @@ class Model(nn.Module):
             ai_last.requires_grad_(True)
             self.as_last_seq.append(ai_last)
         
-        ks = [sum(1 for i in range(1, n_steps[k] - 1) for j in range(i)) for k in range(len(n_steps))]
-        self.as_res = []
-        self.as_last_res = []
+        ks = [sum(1 for i in range(2, n_steps[k]) for j in range(i - 1)) for k in range(len(n_steps))]
+        self.as_res = []                  #* arch parameters for ops_res 
+        self.as_last_res = []             #* arch parameters for last_res
         for i in range(len(n_steps)):
             if ks[i] > 0:
                 ai = 1e-3 * torch.randn(ks[i], n_adjs)
@@ -114,7 +118,7 @@ class Model(nn.Module):
         
         assert(ks[0] + n_steps[0] + (0 if self.as_last_res[0] is None else self.as_last_res[0].size(0)) == (1 + n_steps[0]) * n_steps[0] // 2)
         
-        #* [Optional] Combine more than one meta graph? 
+        #* [optional] combine more than one meta graph? 
         self.attn_fc1 = nn.Linear(n_hid, attn_dim)
         self.attn_fc2 = nn.Linear(attn_dim, 1)
 
@@ -134,6 +138,9 @@ class Model(nn.Module):
         return alphas
     
     def sample(self, eps):
+        '''
+        to sample one candidate edge type per link
+        '''
         idxes_seq = []
         idxes_res = []
         if np.random.uniform() < eps:
@@ -183,6 +190,9 @@ class Model(nn.Module):
         return out
     
     def parse(self):
+        '''
+        to derive a meta graph indicated by arch parameters
+        '''
         idxes_seq, idxes_res = self.sample(0.)
         msg_seq = []; msg_res = []
         for i in range(len(idxes_seq)):

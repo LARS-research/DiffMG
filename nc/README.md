@@ -57,6 +57,10 @@ epoch number; training error; validation error; architecture derived at the end 
 
 To obtain a good architecture, we usually need to run the search algorithm several times with different random seeds.
 
+## Architecture Interpretation
+
+Suppose the number of intermediate states in a meta graph is K. An encoding of a meta graph consists of two lists. The first list is of length K and contains indexes of selected edge types between state (i - 1) and state i (1 <= i <= K). The second list is of length K(K-1)/2 and contains indexes of selected edge types between state j and state i (0 <= j < i - 1, 2 <= i <= K). You can refer to the function `parse` defined in `model_search.py` for how an encoding is obtained based on architecture parameters. For search and evaluation, the mapping between edge types and indexes should be consistent so that an encoding is able to be correctly recognized. 
+
 ## Evaluation
 
 Run the following commands to train the derived architectures from scratch:

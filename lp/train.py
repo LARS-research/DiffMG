@@ -20,7 +20,7 @@ parser.add_argument('--wd', type=float, default=0.001, help='weight decay')
 parser.add_argument('--n_hid', type=int, default=64, help='hidden dimension')
 parser.add_argument('--dataset', type=str, default='Yelp')
 parser.add_argument('--gpu', type=int, default=0)
-parser.add_argument('--epochs', type=int, default=200)
+parser.add_argument('--epochs', type=int, default=200, help='number of training epochs')
 parser.add_argument('--dropout', type=float, default=0.2)
 parser.add_argument('--seed', type=int, default=1)
 args = parser.parse_args()
@@ -79,7 +79,7 @@ def main():
     neg_val = neg['val']
     neg_test = neg['test']
 
-    #* inputs
+    #* one-hot IDs as input features
     in_dims = []
     node_feats = []
     for k in range(num_node_types):
